@@ -14,7 +14,7 @@ import {
   Toast,
   ToastContainer,
 } from "react-bootstrap";
-import { createNews } from "../api/createData";
+import { createNews, uploadFeatureImage } from "../api/createData";
 import { deleteNews } from "../api/deleteData";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 const NewsList = () => {
@@ -33,6 +33,8 @@ const NewsList = () => {
   const [submitError, setSubmitError] = useState(false);
   const [categories, setCategories] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+
   const API_URL = "http://localhost:4000";
 
   useEffect(() => {
@@ -106,14 +108,37 @@ const NewsList = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Find the selected category title and location name
+    console.log(
+      categories,
+      locations,
+      newsInput.categoryId,
+      newsInput.locationId
+    );
+    const selectedCategory = categories.find(
+      (category) => category.id === Number(newsInput.categoryId)
+    );
+    const selectedLocation = locations.find(
+      (location) => location.id === Number(newsInput.locationId)
+    );
+    console.log(selectedFile);
+    let featureImageId = null;
+    if (selectedFile) {
+      featureImageId = await uploadFeatureImage(selectedFile);
+    }
+    console.log("selected category", selectedCategory);
+    console.log("selectedLocation", selectedLocation);
+    console.log("feature image id", featureImageId);
     try {
       await createNews({
         title: newsInput.title,
         slug: newsInput.slug,
         description: newsInput.description,
-        categoryId: newsInput.categoryId, // Use categoryId from state
-        locationId: newsInput.locationId, // Use locationId from state
-        feature_image: newsInput.feature_image,
+        categoryId: newsInput.categoryId,
+        categoryTitle: selectedCategory?.attributes?.title,
+        locationId: newsInput.locationId,
+        locationName: selectedLocation?.attributes?.name,
+        featureImageId: featureImageId, // Use the image ID
       });
       setAddNewsModal(false);
       setNewsInput({
@@ -122,8 +147,15 @@ const NewsList = () => {
         description: "",
         categoryId: "", // Reset categoryId
         locationId: "", // Reset locationId
-        feature_image: "",
+        categoryTitle: "", // Reset categoryId
+        locationName: "", // Reset locationId
+        featureImageId: "",
       });
+      setSelectedFile(null); // Reset the selected file
+      const fileInput = document.querySelector('input[name="feature_image"]');
+      if (fileInput) {
+        fileInput.value = ""; // Clear the file input
+      }
       setSubmitError(false);
       const newNews = await fetchNews();
       setNews(newNews);
@@ -131,13 +163,24 @@ const NewsList = () => {
       setSubmitError(true);
     }
   };
-  const handleDelete = async (category) => {
+  const handleDelete = async (news) => {
     try {
-      await deleteNews(category.id);
+      await deleteNews(news.id);
       const updatedNews = await fetchNews();
       setNews(updatedNews);
     } catch (error) {
       console.log("error in updating news");
+    }
+  };
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]; // Use the event target directly
+    if (file) {
+      setSelectedFile(file);
+      setNewsInput((prevState) => ({
+        ...prevState,
+        feature_image: file,
+      }));
+      console.log("Selected file:", file);
     }
   };
 
@@ -223,7 +266,6 @@ const NewsList = () => {
       </Row>
 
       {/* Add News modal*/}
-      {/* Add News modal*/}
       <Modal show={addNewsModal} onHide={handleModalClose}>
         <Modal.Header closeButton>
           <Modal.Title>Add News</Modal.Title>
@@ -303,16 +345,28 @@ const NewsList = () => {
             </Form.Group>
 
             <Form.Group controlId="feature_image" className="mt-3">
-              <Form.Label>Feature Image URL</Form.Label>
+              <Form.Label>Feature Image</Form.Label>
               <Form.Control
-                type="text"
+                type="file"
                 name="feature_image"
-                value={newsInput.feature_image}
-                onChange={handleInputChange}
-                placeholder="Enter News Feature Image"
-                required
+                onChange={handleFileChange}
               />
             </Form.Group>
+
+            {selectedFile && (
+              <div className="mt-3">
+                <h5>Preview:</h5>
+                <img
+                  src={URL.createObjectURL(selectedFile)}
+                  alt="Selected Feature"
+                  style={{
+                    width: "100%",
+                    maxHeight: "300px",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+            )}
 
             {submitError && (
               <Alert variant="danger" className="mt-3">
