@@ -17,6 +17,7 @@ import {
 import { createNews, uploadFeatureImage } from "../api/createData";
 import { deleteNews } from "../api/deleteData";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { updateNews } from "../api/updateData";
 const NewsList = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +35,16 @@ const NewsList = () => {
   const [categories, setCategories] = useState([]);
   const [locations, setLocations] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [editNewsModal, setEditNewsModal] = useState(false);
+  const [editNews, setEditNews] = useState({
+    id: "null",
+    title: "",
+    slug: "",
+    description: "",
+    categoryId: "",
+    locationId: "",
+    feature_image: "",
+  });
 
   const API_URL = "http://localhost:4000";
 
@@ -169,30 +180,105 @@ const NewsList = () => {
       const updatedNews = await fetchNews();
       setNews(updatedNews);
     } catch (error) {
-      console.log("error in updating news");
+      console.log("error in deleting news");
     }
   };
-  const handleFileChange = (e) => {
-    const file = e.target.files[0]; // Use the event target directly
+  const handleFileChange = (e, isEdit = false) => {
+    const file = e.target.files[0]; // Get the selected file
     if (file) {
-      setSelectedFile(file);
-      setNewsInput((prevState) => ({
-        ...prevState,
-        feature_image: file,
-      }));
+      if (isEdit) {
+        // For editing news
+        setEditNews((prevState) => ({
+          ...prevState,
+          feature_image: file, // Update feature image in edit form
+        }));
+      } else {
+        // For adding news
+        setSelectedFile(file);
+        setNewsInput((prevState) => ({
+          ...prevState,
+          feature_image: file, // Update feature image in add form
+        }));
+      }
       console.log("Selected file:", file);
     }
   };
 
+  const handleEditModalShow = (news) => {
+    console.log("news:", news);
+    setEditNews({
+      id: news.id,
+      title: news.attributes.title,
+      slug: news.attributes.slug,
+      description: news.attributes.description[0]?.children[0]?.text || "", // Properly handle description text
+      categoryId: news.attributes.category?.data?.id || "", // Set categoryId
+      locationId: news.attributes.location?.data?.id || "", // Set locationId
+      feature_image: news.attributes.feature_image?.data?.attributes?.url || "",
+    });
+    setEditNewsModal(true);
+  };
+
+  const handleEditModalClose = () => {
+    setEditNewsModal(false);
+  };
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditNews({ ...editNews, [name]: value });
+  };
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Find the selected category and location
+      const selectedCategory = categories.find(
+        (category) => category.id === Number(editNews.categoryId)
+      );
+      const selectedLocation = locations.find(
+        (location) => location.id === Number(editNews.locationId)
+      );
+      console.log("fetaure image in edit", editNews?.feature_image);
+      // Check if a new image file is selected
+      let featureImageId = editNews?.feature_image;
+      // If a new image file is selected, upload it
+      if (editNews.feature_image instanceof File) {
+        featureImageId = await uploadFeatureImage(editNews?.feature_image);
+      }
+
+      // Construct the updated news data
+      const updatedNewsData = {
+        title: editNews.title,
+        slug: editNews.slug,
+        description: editNews.description,
+        categoryId: editNews.categoryId,
+        categoryTitle: selectedCategory?.attributes?.title,
+        locationId: editNews.locationId,
+        locationName: selectedLocation?.attributes?.name,
+        featureImageId: featureImageId, // Use the new image ID or the existing one
+      };
+      console.log("updated news data", updatedNewsData);
+      // Send update request
+      await updateNews(editNews?.id, updatedNewsData);
+
+      // Fetch the updated news list after successful edit
+      const updatedNews = await fetchNews();
+      setNews(updatedNews);
+
+      // Close modal after success
+      setEditNewsModal(false);
+    } catch (error) {
+      console.log("Error in updating news:", error);
+    }
+  };
+
   return (
-    <Container className="my-5">
+    <Container className="my-3">
       <h1>News</h1>
       <Button variant="primary" className="mb-4" onClick={handleModalShow}>
         + Add News
       </Button>
       <Row>
         {news.map((newsItem) => (
-          <Col key={newsItem.id}>
+          <Col key={newsItem.id} xs={12} sm={6} md={4} lg={3} className="mb-4">
             <Card>
               <Card.Body>
                 <Card.Title className="mb-4">
@@ -207,12 +293,21 @@ const NewsList = () => {
                   )}
                   <span className="d-flex flex-row justify-content-between">
                     {newsItem.attributes.title}
-                    <Button
-                      variant="danger"
-                      onClick={() => handleDelete(newsItem)}
-                    >
-                      <FaTrashAlt />
-                    </Button>
+                    <span className="mb-4">
+                      <Button
+                        variant="primary"
+                        className="mb-2"
+                        onClick={() => handleEditModalShow(newsItem)}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        variant="danger"
+                        onClick={() => handleDelete(newsItem)}
+                      >
+                        <FaTrashAlt />
+                      </Button>
+                    </span>
                   </span>
                 </Card.Title>
                 <Card.Subtitle className="mb-2 text-muted">
@@ -376,6 +471,127 @@ const NewsList = () => {
 
             <Button variant="primary" type="submit" className="mt-3">
               Submit
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      {/* Edit News modal*/}
+      <Modal show={editNewsModal} onHide={handleEditModalClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit a News</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleEditSubmit}>
+            <Form.Group controlId="title">
+              <Form.Label>Title</Form.Label>
+              <Form.Control
+                type="text"
+                name="title"
+                value={editNews.title}
+                onChange={handleEditInputChange}
+                placeholder="Enter News Title"
+                required
+              />
+            </Form.Group>
+
+            <Form.Group controlId="slug" className="mt-3">
+              <Form.Label>Slug</Form.Label>
+              <Form.Control
+                type="text"
+                name="slug"
+                value={editNews.slug}
+                onChange={handleEditInputChange}
+                placeholder="Enter News Slug"
+                required
+              />
+            </Form.Group>
+
+            <Form.Group controlId="description" className="mt-3">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                name="description"
+                value={editNews.description}
+                onChange={handleEditInputChange}
+                placeholder="Enter News Description"
+                required
+              />
+            </Form.Group>
+
+            <Form.Group controlId="category" className="mt-3">
+              <Form.Label>Category</Form.Label>
+              <Form.Control
+                as="select"
+                name="categoryId"
+                value={editNews.categoryId}
+                onChange={handleEditInputChange}
+                required
+              >
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.attributes.title}
+                  </option>
+                ))}
+              </Form.Control>
+            </Form.Group>
+
+            <Form.Group controlId="location" className="mt-3">
+              <Form.Label>Location</Form.Label>
+              <Form.Control
+                as="select"
+                name="locationId"
+                value={editNews.locationId}
+                onChange={handleEditInputChange}
+                required
+              >
+                <option value="">Select a location</option>
+                {locations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.attributes.name}
+                  </option>
+                ))}
+              </Form.Control>
+            </Form.Group>
+
+            <Form.Group controlId="feature_image" className="mt-3">
+              <Form.Label>Feature Image</Form.Label>
+              <Form.Control
+                type="file"
+                name="feature_image"
+                onChange={(e) => handleFileChange(e, true)} // Pass `true` for edit mode
+              />
+              {editNews.feature_image && (
+                <img
+                  src={
+                    editNews.feature_image instanceof File
+                      ? URL.createObjectURL(editNews.feature_image) // Show preview of selected file
+                      : `${API_URL}${editNews.feature_image}` // Show existing image
+                  }
+                  alt="Feature"
+                  style={{ width: "100%", marginTop: "10px" }}
+                />
+              )}
+            </Form.Group>
+
+            {selectedFile && (
+              <div className="mt-3">
+                <h5>Preview:</h5>
+                <img
+                  src={URL.createObjectURL(selectedFile)}
+                  alt="Selected Feature"
+                  style={{
+                    width: "100%",
+                    maxHeight: "300px",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+            )}
+
+            <Button variant="primary" type="submit" className="mt-3">
+              Update News
             </Button>
           </Form>
         </Modal.Body>

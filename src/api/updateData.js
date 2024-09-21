@@ -23,3 +23,53 @@ export const updateCategory = async (id, category) => {
     throw error;
   }
 };
+export const updateNews = async (id, news) => {
+  try {
+    const response = await fetch(`${API_URL}/news/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        data: {
+          title: news.title,
+          slug: news.slug,
+          description: [
+            {
+              type: "paragraph",
+              children: [
+                {
+                  text: news.description,
+                  type: "text",
+                },
+              ],
+            },
+          ],
+          category: news.categoryId
+            ? {
+                id: news.categoryId,
+              }
+            : null,
+          location: news.locationId
+            ? {
+                id: news.locationId,
+              }
+            : null,
+          feature_image: news.featureImageId
+            ? {
+                id: news.featureImageId, // Ensure the correct format for the image ID
+              }
+            : null,
+        },
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("Error updating news");
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error updating news:", error);
+    throw error;
+  }
+};
