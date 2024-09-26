@@ -57,7 +57,7 @@ export const updateNews = async (id, news) => {
             : null,
           feature_image: news.featureImageId
             ? {
-                id: news.featureImageId, // Ensure the correct format for the image ID
+                id: news.featureImageId,
               }
             : null,
         },

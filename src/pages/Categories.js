@@ -1,17 +1,17 @@
 import React from "react";
-import NewsList from "../components/NewsList";
-import { fetchNewsPage } from "../api/fetchPages";
+import CategoriesList from "../components/CategoriesList";
+import { fetchCategoryPage } from "../api/fetchPages";
 import { useState, useEffect } from "react";
-export default function News() {
+export default function Categories() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const getData = async () => {
       try {
-        const newsData = await fetchNewsPage();
-        console.log(newsData); // Log the entire response
-        setData(newsData.data); // Set the data to the state
+        const categoryData = await fetchCategoryPage();
+        console.log(categoryData); // Log the entire response
+        setData(categoryData.data); // Set the data to the state
       } catch (err) {
         setError(err.message);
       }
@@ -22,15 +22,10 @@ export default function News() {
   if (error) return <div>Error: {error}</div>;
   if (!data) return <div>Loading...</div>;
 
-  // Check if header exists
-  const pageTitle = data.attributes.header
-    ? data.attributes.header.page_title
-    : "Default Title";
-
-  console.log("News");
+  console.log("Categories");
   return (
     <div>
-      <h1>News Page</h1>
+      <h1>Categories Page</h1>
       <div>
         <h1>{data.attributes.header[0]?.page_title}</h1>
         <h2>{data.attributes.header[0]?.meta_title}</h2>
@@ -42,7 +37,7 @@ export default function News() {
       <a href="/news">News</a>
       <br />
       <a href="/categories">Categories</a>
-      <NewsList />
+      <CategoriesList />
     </div>
   );
 }

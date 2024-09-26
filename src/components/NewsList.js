@@ -113,13 +113,12 @@ const NewsList = () => {
     const { name, value } = e.target;
     setNewsInput((prevState) => ({
       ...prevState,
-      [name]: value, // This will capture the categoryId and locationId
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Find the selected category title and location name
     console.log(
       categories,
       locations,
@@ -149,23 +148,23 @@ const NewsList = () => {
         categoryTitle: selectedCategory?.attributes?.title,
         locationId: newsInput.locationId,
         locationName: selectedLocation?.attributes?.name,
-        featureImageId: featureImageId, // Use the image ID
+        featureImageId: featureImageId,
       });
       setAddNewsModal(false);
       setNewsInput({
         title: "",
         slug: "",
         description: "",
-        categoryId: "", // Reset categoryId
-        locationId: "", // Reset locationId
-        categoryTitle: "", // Reset categoryId
-        locationName: "", // Reset locationId
+        categoryId: "",
+        locationId: "",
+        categoryTitle: "",
+        locationName: "",
         featureImageId: "",
       });
-      setSelectedFile(null); // Reset the selected file
+      setSelectedFile(null);
       const fileInput = document.querySelector('input[name="feature_image"]');
       if (fileInput) {
-        fileInput.value = ""; // Clear the file input
+        fileInput.value = "";
       }
       setSubmitError(false);
       const newNews = await fetchNews();
@@ -184,20 +183,18 @@ const NewsList = () => {
     }
   };
   const handleFileChange = (e, isEdit = false) => {
-    const file = e.target.files[0]; // Get the selected file
+    const file = e.target.files[0];
     if (file) {
       if (isEdit) {
-        // For editing news
         setEditNews((prevState) => ({
           ...prevState,
-          feature_image: file, // Update feature image in edit form
+          feature_image: file,
         }));
       } else {
-        // For adding news
         setSelectedFile(file);
         setNewsInput((prevState) => ({
           ...prevState,
-          feature_image: file, // Update feature image in add form
+          feature_image: file,
         }));
       }
       console.log("Selected file:", file);
@@ -210,9 +207,9 @@ const NewsList = () => {
       id: news.id,
       title: news.attributes.title,
       slug: news.attributes.slug,
-      description: news.attributes.description[0]?.children[0]?.text || "", // Properly handle description text
-      categoryId: news.attributes.category?.data?.id || "", // Set categoryId
-      locationId: news.attributes.location?.data?.id || "", // Set locationId
+      description: news.attributes.description[0]?.children[0]?.text || "",
+      categoryId: news.attributes.category?.data?.id || "",
+      locationId: news.attributes.location?.data?.id || "",
       feature_image: news.attributes.feature_image?.data?.attributes?.url || "",
     });
     setEditNewsModal(true);
@@ -227,9 +224,7 @@ const NewsList = () => {
   };
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      // Find the selected category and location
       const selectedCategory = categories.find(
         (category) => category.id === Number(editNews.categoryId)
       );
@@ -237,14 +232,10 @@ const NewsList = () => {
         (location) => location.id === Number(editNews.locationId)
       );
       console.log("fetaure image in edit", editNews?.feature_image);
-      // Check if a new image file is selected
       let featureImageId = editNews?.feature_image;
-      // If a new image file is selected, upload it
       if (editNews.feature_image instanceof File) {
         featureImageId = await uploadFeatureImage(editNews?.feature_image);
       }
-
-      // Construct the updated news data
       const updatedNewsData = {
         title: editNews.title,
         slug: editNews.slug,
@@ -253,17 +244,12 @@ const NewsList = () => {
         categoryTitle: selectedCategory?.attributes?.title,
         locationId: editNews.locationId,
         locationName: selectedLocation?.attributes?.name,
-        featureImageId: featureImageId, // Use the new image ID or the existing one
+        featureImageId: featureImageId,
       };
       console.log("updated news data", updatedNewsData);
-      // Send update request
       await updateNews(editNews?.id, updatedNewsData);
-
-      // Fetch the updated news list after successful edit
       const updatedNews = await fetchNews();
       setNews(updatedNews);
-
-      // Close modal after success
       setEditNewsModal(false);
     } catch (error) {
       console.log("Error in updating news:", error);

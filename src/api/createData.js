@@ -54,9 +54,7 @@ export const createNews = async (news) => {
               id: news.locationId,
             }
           : null,
-        feature_image: news.featureImageId
-          ? { id: news.featureImageId } // Updated to use feature image ID
-          : null,
+        feature_image: news.featureImageId ? { id: news.featureImageId } : null,
       },
     }),
   });
