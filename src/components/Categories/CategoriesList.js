@@ -43,24 +43,31 @@ const ReadCategories = () => {
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3500);
   };
+  const loadCategories = async () => {
+    try {
+      const data = await fetchCategories();
+      setCategories(data);
+    } catch (error) {
+      setError("Failed to load categories");
+      console.error("Error loading categories:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const data = await fetchCategories();
-        setCategories(data);
-      } catch (error) {
-        setError("Failed to load categories");
-        console.error("Error loading categories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     // we are Fetching data every 10 seconds
-    const intervalId = setInterval(() => {
-      loadCategories();
-    }, 10000);
+    // const intervalId = setInterval(() => {
+    //   loadCategories();
+    // }, 10000);
     loadCategories();
-    return () => clearInterval(intervalId);
+    const handleFocus = () => {
+      loadCategories();
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
+    // return () => clearInterval(intervalId);
   }, []);
 
   if (loading)

@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Home from "../src/pages/Home/Components/Home";
-import News from "../src/pages/Categories/Components/Categories";
-import Categories from "../src/pages/News/Components/News";
+import News from "../src/pages/News/Components/News";
+import Categories from "../src/pages/Categories/Components/Categories";
 function App() {
   return (
     <Router>

@@ -17,12 +17,19 @@ export default function Categories() {
         setError(err.message);
       }
     };
-    // we are Fetching data every 10 seconds
-    const intervalId = setInterval(() => {
-      getData();
-    }, 10000);
+    // // we are Fetching data every 10 seconds
+    // const intervalId = setInterval(() => {
+    //   getData();
+    // }, 10000);
     getData();
-    return () => clearInterval(intervalId);
+    const handleFocus = () => {
+      getData();
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
+    // return () => clearInterval(intervalId);
   }, []);
   if (error) return <div>Error: {error}</div>;
   if (!data) return <div>Loading...</div>;
