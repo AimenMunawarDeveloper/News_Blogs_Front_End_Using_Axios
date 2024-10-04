@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { fetchCategories } from "../api/fetchData";
-import { createCategory } from "../api/createData";
+import { fetchCategories } from "../../api/CategoriesApi";
+import { createCategory } from "../../api/CategoriesApi";
 import {
   Container,
   Row,
@@ -13,15 +13,14 @@ import {
   Modal,
   Form,
   Toast,
-  Nav,
-  Navbar,
   ToastContainer,
 } from "react-bootstrap";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { updateCategory } from "../api/updateData";
-import { deleteCategory } from "../api/deleteData";
+import { updateCategory } from "../../api/CategoriesApi";
+import { deleteCategory } from "../../api/CategoriesApi";
 
 const ReadCategories = () => {
+  localStorage.getItem("token");
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -56,8 +55,12 @@ const ReadCategories = () => {
         setLoading(false);
       }
     };
-
+    // we are Fetching data every 10 seconds
+    const intervalId = setInterval(() => {
+      loadCategories();
+    }, 10000);
     loadCategories();
+    return () => clearInterval(intervalId);
   }, []);
 
   if (loading)

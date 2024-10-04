@@ -1,23 +1,23 @@
 import { useState, useEffect } from "react";
-import { fetchNews, fetchCategories, fetchLocations } from "../api/fetchData";
+import { fetchNews } from "../../api/NewsApi";
+import { fetchCategories } from "../../api/CategoriesApi";
+import { fetchLocations } from "../../api/LocationsApi";
 import {
   Container,
   Row,
   Col,
-  ListGroup,
   Card,
   Spinner,
   Alert,
   Button,
   Modal,
   Form,
-  Toast,
-  ToastContainer,
 } from "react-bootstrap";
-import { createNews, uploadFeatureImage } from "../api/createData";
-import { deleteNews } from "../api/deleteData";
+import { createNews } from "../../api/NewsApi";
+import { deleteNews } from "../../api/NewsApi";
+import { uploadFeatureImage } from "../../api/ImageApi";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { updateNews } from "../api/updateData";
+import { updateNews } from "../../api/NewsApi";
 const NewsList = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +46,7 @@ const NewsList = () => {
     feature_image: "",
   });
 
-  const API_URL = "http://localhost:4000";
+  const IMAGE_URL = process.env.REACT_APP_BASE_URL;
 
   useEffect(() => {
     const loadNews = async () => {
@@ -60,20 +60,12 @@ const NewsList = () => {
         setLoading(false);
       }
     };
-
-    const loadCategoriesAndLocations = async () => {
-      try {
-        const categoriesData = await fetchCategories();
-        setCategories(categoriesData);
-        const locationsData = await fetchLocations();
-        setLocations(locationsData);
-      } catch (error) {
-        console.error("Error fetching categories or locations:", error);
-      }
-    };
-
+    // we are Fetching data every 10 seconds
+    const intervalId = setInterval(() => {
+      loadNews();
+    }, 10000);
     loadNews();
-    loadCategoriesAndLocations();
+    return () => clearInterval(intervalId);
   }, []);
 
   if (loading)
@@ -102,10 +94,20 @@ const NewsList = () => {
       </Container>
     );
   }
+  const loadCategoriesAndLocations = async () => {
+    try {
+      const categoriesData = await fetchCategories();
+      setCategories(categoriesData);
+      const locationsData = await fetchLocations();
+      setLocations(locationsData);
+    } catch (error) {
+      console.error("Error fetching categories or locations:", error);
+    }
+  };
   const handleModalShow = () => {
     setAddNewsModal(true);
+    loadCategoriesAndLocations();
   };
-
   const handleModalClose = () => {
     setAddNewsModal(false);
   };
@@ -212,6 +214,7 @@ const NewsList = () => {
       locationId: news.attributes.location?.data?.id || "",
       feature_image: news.attributes.feature_image?.data?.attributes?.url || "",
     });
+    loadCategoriesAndLocations();
     setEditNewsModal(true);
   };
 
@@ -270,7 +273,7 @@ const NewsList = () => {
                 <Card.Title className="mb-4">
                   {newsItem.attributes.feature_image?.data?.length > 0 ? (
                     <img
-                      src={`${API_URL}${newsItem.attributes.feature_image.data[0].attributes.url}`}
+                      src={`${IMAGE_URL}${newsItem.attributes.feature_image.data[0].attributes.url}`}
                       alt={newsItem.attributes.title}
                       style={{ width: "100%", marginBottom: "15px" }}
                     />
@@ -393,7 +396,7 @@ const NewsList = () => {
               <Form.Label>Category</Form.Label>
               <Form.Control
                 as="select"
-                name="categoryId" // Make sure this matches the state
+                name="categoryId"
                 value={newsInput.categoryId}
                 onChange={handleInputChange}
                 required
@@ -411,7 +414,7 @@ const NewsList = () => {
               <Form.Label>Location</Form.Label>
               <Form.Control
                 as="select"
-                name="locationId" // Make sure this matches the state
+                name="locationId"
                 value={newsInput.locationId}
                 onChange={handleInputChange}
                 required
@@ -546,14 +549,14 @@ const NewsList = () => {
               <Form.Control
                 type="file"
                 name="feature_image"
-                onChange={(e) => handleFileChange(e, true)} // Pass `true` for edit mode
+                onChange={(e) => handleFileChange(e, true)}
               />
               {editNews.feature_image && (
                 <img
                   src={
                     editNews.feature_image instanceof File
-                      ? URL.createObjectURL(editNews.feature_image) // Show preview of selected file
-                      : `${API_URL}${editNews.feature_image}` // Show existing image
+                      ? URL.createObjectURL(editNews.feature_image)
+                      : `${IMAGE_URL}${editNews.feature_image}`
                   }
                   alt="Feature"
                   style={{ width: "100%", marginTop: "10px" }}
