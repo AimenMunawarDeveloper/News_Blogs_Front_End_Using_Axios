@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { fetchCategories } from "../../api/CategoriesApi";
-import { createCategory } from "../../api/CategoriesApi";
+import {
+  fetchCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "../api/CategoriesApi";
 import {
   Container,
   Row,
@@ -16,8 +20,6 @@ import {
   ToastContainer,
 } from "react-bootstrap";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { updateCategory } from "../../api/CategoriesApi";
-import { deleteCategory } from "../../api/CategoriesApi";
 
 const ReadCategories = () => {
   localStorage.getItem("token");

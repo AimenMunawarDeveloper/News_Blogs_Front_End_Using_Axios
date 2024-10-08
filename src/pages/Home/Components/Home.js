@@ -1,11 +1,11 @@
 import React from "react";
-import CategoriesList from "../../../components/Categories/CategoriesList";
-import NewsList from "../../../components/News/NewsList";
+import CategoriesList from "../../Categories/components/CategoriesList";
+import NewsList from "../../News/components/NewsList";
 import { fetchHomePage } from "../api/HomeApi";
 import { Container, Row, Col, Card } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { setToken } from "../../../api/api-helper";
+import { setToken } from "../../api-helper/api-helper";
 export default function Home() {
   setToken();
   const [data, setData] = useState(null);

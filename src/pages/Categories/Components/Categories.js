@@ -1,6 +1,6 @@
 import React from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
-import CategoriesList from "../../../components/Categories/CategoriesList";
+import CategoriesList from "./CategoriesList";
 import { fetchCategoryPage } from "../api/CategoriesApi";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";

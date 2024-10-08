@@ -1,6 +1,6 @@
 import React from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
-import NewsList from "../../../components/News/NewsList";
+import NewsList from "./NewsList";
 import { fetchNewsPage } from "../api/NewsApi";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";

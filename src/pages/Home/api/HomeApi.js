@@ -1,5 +1,5 @@
 import axios from "axios";
-import { jsonConfig } from "../../../api/api-helper";
+import { jsonConfig } from "../../api-helper/api-helper";
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 export const fetchHomePage = async () => {
   try {

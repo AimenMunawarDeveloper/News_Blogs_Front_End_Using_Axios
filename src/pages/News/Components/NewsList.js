@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { fetchNews } from "../../api/NewsApi";
-import { fetchCategories } from "../../api/CategoriesApi";
-import { fetchLocations } from "../../api/LocationsApi";
+import { fetchCategories } from "../../Categories/api/CategoriesApi";
+import { fetchLocations } from "../api/NewsApi";
 import {
   Container,
   Row,
@@ -13,11 +12,11 @@ import {
   Modal,
   Form,
 } from "react-bootstrap";
-import { createNews } from "../../api/NewsApi";
-import { deleteNews } from "../../api/NewsApi";
-import { uploadFeatureImage } from "../../api/ImageApi";
+import { fetchNews, createNews } from "../api/NewsApi";
+import { deleteNews } from "../api/NewsApi";
+import { uploadFeatureImage } from "../api/NewsApi";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { updateNews } from "../../api/NewsApi";
+import { updateNews } from "../api/NewsApi";
 const NewsList = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
